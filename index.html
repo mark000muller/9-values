@@ -6,10 +6,10 @@
 <title>Nine Values</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
-*{box-sizing:border-box;margin:0;padding:0;touch-action:none;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;font-family:'IM Fell English',Georgia,serif}
-#app{width:100vw;height:100vh;position:relative;overflow:hidden;background:#02010e;border-radius:0;}
-.screen{position:absolute;top:0;left:0;width:100vw;height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;font-family:'IM Fell English',Georgia,serif;touch-action:none;overflow:hidden}
+#app{width:100vw;height:100vh;position:relative;overflow:hidden;background:#02010e;border-radius:0}
+.screen{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center}
 .screen.active{display:flex}
 
 /* AUDIO TOGGLE */
@@ -19,7 +19,7 @@ html,body{width:100%;height:100%;background:#000;display:flex;align-items:center
 
 /* REFRESH */
 #refresh-screen{background:#02010e}
-#refresh-canvas{position:absolute;top:0;left:0;width:100%;height:100%}
+#refresh-canvas{position:absolute;top:0;left:0;width:100%;height:100%;touch-action:none}
 .refresh-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:28px;padding:40px}
 .refresh-orb{width:88px;height:88px;border-radius:50%;border:1px solid rgba(160,140,255,0.3);display:flex;align-items:center;justify-content:center;animation:breathe 4s ease-in-out infinite}
 .refresh-orb svg{width:40px;height:40px;opacity:0.45}
@@ -47,7 +47,7 @@ html,body{width:100%;height:100%;background:#000;display:flex;align-items:center
 
   <!-- REFRESH -->
   <div class="screen active" id="refresh-screen">
-    <canvas id="refresh-canvas" width="390" height="844"></canvas>
+    <canvas id="refresh-canvas"></canvas>
     <div class="refresh-content">
       <div class="refresh-orb"><svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="15" stroke="rgba(160,140,255,0.45)" stroke-width="1"/><circle cx="20" cy="20" r="9" stroke="rgba(160,140,255,0.28)" stroke-width="0.5"/><circle cx="20" cy="20" r="3.5" fill="rgba(160,140,255,0.4)"/></svg></div>
       <div class="refresh-title">Nine Values</div>
@@ -58,14 +58,14 @@ html,body{width:100%;height:100%;background:#000;display:flex;align-items:center
 
   <!-- LOGIN -->
   <div class="screen" id="login-screen">
-    <canvas id="login-canvas" width="390" height="844"></canvas>
+    <canvas id="login-canvas"></canvas>
     <div class="login-mystery" id="login-mystery">there is more</div>
     <div class="login-feedback" id="login-feedback"></div>
   </div>
 
   <!-- ORB -->
   <div class="screen" id="orb-screen">
-    <canvas id="orb-canvas" width="390" height="844"></canvas>
+    <canvas id="orb-canvas"></canvas>
     <button class="orb-back" id="orb-back">← leave</button>
     <div class="orb-hint">drag to explore · tap a word to open</div>
   </div>
@@ -98,7 +98,7 @@ html,body{width:100%;height:100%;background:#000;display:flex;align-items:center
 
   <!-- CONTENT -->
   <div class="screen" id="content-screen">
-    <canvas id="content-canvas" width="390" height="844"></canvas>
+    <canvas id="content-canvas"></canvas>
     <button class="content-gem-btn" id="content-gem-btn">
       <div class="content-gem-inner" id="content-gem-inner"></div>
     </button>
@@ -112,6 +112,18 @@ html,body{width:100%;height:100%;background:#000;display:flex;align-items:center
 </div>
 
 <script>
+
+// Mobile canvas resize
+function resizeAllCanvases() {
+  const W = window.innerWidth, H = window.innerHeight;
+  document.querySelectorAll('canvas').forEach(c => {
+    c.width = W;
+    c.height = H;
+  });
+}
+resizeAllCanvases();
+window.addEventListener('resize', resizeAllCanvases);
+
 
 // Safety shim: guard all arc calls against negative radius
 (function(){
