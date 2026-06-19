@@ -1,1 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=390, initial-scale=1.0">
+<title>Nine Values</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;font-family:'IM Fell English',Georgia,serif}
+#app{width:390px;height:844px;position:relative;overflow:hidden;background:#02010e;border-radius:20px;box-shadow:0 0 80px rgba(100,80,255,0.15)}
+.screen{position:absolute;top:0;left:0;width:390px;height:844px;display:none;flex-direction:column;align-items:center;justify-content:center}
+.screen.active{display:flex}
 
+/* AUDIO TOGGLE */
+#audio-toggle{position:absolute;top:28px;right:24px;z-index:10;background:none;border:0.5px solid rgba(255,255,255,0.12);border-radius:20px;padding:6px 12px;cursor:pointer;font-family:'IM Fell English',Georgia,serif;font-size:10px;letter-spacing:0.1em;color:rgba(255,255,255,0.25);transition:all 0.3s}
+#audio-toggle:hover{color:rgba(255,255,255,0.5);border-color:rgba(255,255,255,0.25)}
+#audio-toggle.muted{color:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.07)}
+
+/* REFRESH */
+#refresh-screen{background:#02010e}
+#refresh-canvas{position:absolute;top:0;left:0;width:390px;height:844px}
+.refresh-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:28px;padding:40px}
+.refresh-orb{width:88px;height:88px;border-radius:50%;border:1px solid rgba(160,140,255,0.3);display:flex;align-items:center;justify-content:center;animation:breathe 4s ease-in-out infinite}
+.refresh-orb svg{width:40px;height:40px;opacity:0.45}
+@keyframes breathe{0%,100%{transform:scale(1);box-shadow:0 0 20px rgba(140,120,255,0.08)}50%{transform:scale(1.07);box-shadow:0 0 55px rgba(140,120,255,0.25)}}
+.refresh-title{font-size:26px;color:rgba(255,255,255,0.65);letter-spacing:0.06em;text-align:center;font-style:italic}
+.refresh-sub{font-size:14px;color:rgba(255,255,255,0.28);letter-spacing:0.03em;text-align:center;line-height:1.9;max-width:270px}
+.refresh-btn{font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.22);background:none;border:0.5px solid rgba(255,255,255,0.1);border-radius:20px;padding:11px 26px;cursor:pointer;font-family:'IM Fell English',Georgia,serif}
+
+/* LOGIN */
+#login-screen{background:#02010e}
+#login-canvas{position:absolute;top:0;left:0;width:390px;height:844px}
+.login-mystery{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:18px;letter-spacing:0.3em;text-transform:uppercase;color:rgba(200,185,255,1);font-style:italic;pointer-events:none;text-align:center;white-space:nowrap;z-index:2;transition:opacity 0.1s}
+.login-feedback{position:absolute;bottom:120px;left:0;right:0;text-align:center;font-size:13px;color:rgba(255,255,255,0.35);letter-spacing:0.1em;pointer-events:none;z-index:2}
+@keyframes gemPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}50%{box-shadow:0 0 0 7px rgba(255,255,255,0.07)}}
+.content-value-name{position:absolute;top:120px;left:50%;transform:translateX(-50%);z-index:3;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.28);font-style:italic;white-space:nowrap;pointer-events:none}
+.content-tap-hint{position:absolute;top:140px;left:50%;transform:translateX(-50%);z-index:3;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.13);font-style:italic;white-space:nowrap;pointer-events:none}
+.sentence-stage{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;z-index:2;padding:0 36px}
+#sentence-text{font-size:30px;line-height:1.65;color:rgba(255,255,255,0);text-align:center;font-style:italic;max-width:318px;pointer-events:none}
+#restart-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;font-size:18px;font-style:italic;letter-spacing:0.1em;color:rgba(255,255,255,0);pointer-events:none;text-align:center}
+</style>
+</head>
+<body>
+<div id="app">
+  <button id="audio-toggle" title="toggle audio">♪ on</button>
+
+  <!-- REFRESH -->
+  <div class="screen active" id="refresh-screen">
+    <canvas id="refresh-canvas" width="390" height="844"></canvas>
+    <div class="refresh-content">
+      <div class="refresh-orb"><svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="15" stroke="rgba(160,140,255,0.45)" stroke-width="1"/><circle cx="20" cy="20" r="9" stroke="rgba(160,140,255,0.28)" stroke-width="0.5"/><circle cx="20" cy="20" r="3.5" fill="rgba(160,140,255,0.4)"/></svg></div>
+      <div class="refresh-title">Nine Values</div>
+      <div class="refresh-sub">Tap the jewellery with your phone to begin, or ask the owner to share the experience with you.</div>
+      <button class="refresh-btn" id="refresh-demo-btn">begin the experience</button>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="screen" id="login-screen">
+    <canvas id="login-canvas" width="390" height="844"></canvas>
+    <div class="login-mystery" id="login-mystery">there is more</div>
+    <div class="login-feedback" id="login-feedback"></div>
+  </div>
+
+  <!-- ORB -->
+  <div class="screen" id="orb-screen">
+    <canvas id="orb-canvas" width="390" height="844"></canvas>
+    <button class="orb-back" id="orb-back">← leave</button>
+    <div class="orb-hint">drag to explore · tap a word to open</div>
+  </div>
+
+  <!-- HEART — image gallery -->
+  <div class="screen" id="heart-screen">
+    <div class="back-btn" id="heart-back">← leave</div>
+    <div class="heart-stage">
+      <div class="heart-img-wrap" id="heart-img-wrap">
+        <img class="heart-img" id="heart-img" src="" alt="" />
+      </div>
+    </div>
+  </div>
+
+  <!-- STAR — scrolling letter -->
+  <div class="screen" id="star-screen">
+    <div class="back-btn" id="star-back">← leave</div>
+    <div class="star-scroll" id="star-scroll">
+      <div class="star-letter" id="star-letter"></div>
+    </div>
+  </div>
+
+  <!-- INFINITY — single secret -->
+  <div class="screen" id="infinity-screen">
+    <div class="back-btn" id="infinity-back">← leave</div>
+    <div class="infinity-stage">
+      <div class="infinity-msg" id="infinity-msg"></div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="screen" id="content-screen">
+    <canvas id="content-canvas" width="390" height="844"></canvas>
+    <button class="content-gem-btn" id="content-gem-btn">
+      <div class="content-gem-inner" id="content-gem-inner"></div>
+    </button>
+    <div class="content-value-name" id="content-value-name"></div>
+    <div class="content-tap-hint">tap circle to return · tap screen to continue</div>
+    <div class="sentence-stage">
+      <div id="sentence-text"></div>
+    </div>
+    <div id="restart-text">begin again</div>
+  </div>
+</div>
+
+<script>
+
+// Safety shim: guard all arc calls against negative radius
+(function(){
+  const _arc = CanvasRenderingContext2D.prototype.arc;
+  CanvasRenderingContext2D.prototype.arc = function(x,y,r,sa,ea,cc){
+    if(r<0)r=0;
+    return _arc.call(this,x,y,r,sa,ea,cc);
+  };
+})();
+
+// ── OWNER CONFIG ─────────────────────────────────────────────────────────────
+// Active symbols → destination: 'orb' | 'heart' | 'star' | 'infinity'
+const SYMBOL_MAP={
+  circle:'orb',
+  heart:'heart',
+  star:'star',
+  infinity:'infinity',
+};
+
+// ── VALUES ───────────────────────────────────────────────────────────────────
+const VALUES=[
+  {name:'love',gem:'ruby',h1:'#c0182a',h2:'#ff6688',dark:'#100003',freqs:[216,270,324],
+   sentences:['Love, in its truest form, extends far beyond the bonds of personal relationship.','It is a universal acceptance of others — every soul, exactly as they are, without condition or qualification.','Every person carries a purpose in this world, and it is not for us to judge what that purpose may be.','This love does not depend on fondness or familiarity — it must be extended to all who are encountered.','It is less a feeling and more a sacred stance — a deliberate and unwavering openness toward every human being.']},
+  {name:'peace',gem:'sapphire',h1:'#1840cc',h2:'#66aaff',dark:'#000818',freqs:[216,288,360],
+   sentences:['Peace operates on two levels — inner and outer.','Internally, it is a state of being to be actively cultivated: the release of pain, conflict, turmoil, anxiety and frustration.','Externally, peace is the harmony between individuals and groups that allows all to live and flourish together.','True peace can only be achieved mutually.','It requires the willingness of all to lay down conflict and meet one another with openness and goodwill.']},
+  {name:'faith',gem:'amethyst',h1:'#8822ee',h2:'#cc88ff',dark:'#0c0018',freqs:[216,324,432],
+   sentences:['Faith is the gift of unwavering belief — trusting in something beyond what the eye can see.','It is a knowing that lives in the heart: a quiet inner guidance that shapes thought and behaviour.','Faith opens the mind to possibilities that logic alone cannot reach.','Without faith, the mind becomes a prisoner of pure rationality.','Faith is what unlocks true freedom — of thought, of belief, and of purpose.']},
+  {name:'forgiveness',gem:'emerald',h1:'#0a8050',h2:'#44ffaa',dark:'#001810',freqs:[216,270,405],
+   sentences:['Forgiveness is two-fold — it must be extended to others, and equally to oneself.','Real forgiveness requires a complete releasing — a forgive and forget.','The matter must no longer occupy space within the mind or heart.','In forgiving wholly, one expels the anger and disdain that burden the spirit.','Forgiveness is a two-way grace: it offers and accepts, and in doing so, sets all free.']},
+  {name:'compassion',gem:'topaz',h1:'#cc9900',h2:'#ffdd66',dark:'#181000',freqs:[216,288,432],
+   sentences:['Compassion is the capacity to sense the feelings of others — to inhabit, even for a moment, another\'s life.','It is most powerfully awakened in the presence of suffering: physical, mental, emotional, or spiritual.','True compassion compels action.','At the very least, it calls us to acknowledge the one who suffers — to let them know they are seen.','Compassion is humanity\'s recognition that all are one — that life is shared in unity.']},
+  {name:'humility',gem:'jade',h1:'#1a9950',h2:'#66ffaa',dark:'#001408',freqs:[216,324,384],
+   sentences:['Humility is grounded in the recognition that every person on this earth holds equal value.','Beneath all apparent difference, each being is simply a spirit undergoing a human experience.','Our journeys upon this earth plane may differ greatly, but all are here to walk their own pathway.','What appears as difference is not division — it is the unique circumstance through which each spirit grows.','Humility frees us from the grip of ego and opens us toward a deeper sense of unity with all.']},
+  {name:'gratitude',gem:'garnet',h1:'#cc3300',h2:'#ff8844',dark:'#140400',freqs:[216,270,360],
+   sentences:['Gratitude is the practice of giving thanks for one\'s place in this life.','It is the recognition and honouring of the good that exists, rather than allowing attention to be consumed by what is lacking.','Its most meaningful expression is directed toward others.','When gratitude is offered to a fellow human being, something sacred occurs.','Both the giver and receiver are spiritually enriched. Gratitude is a living bridge between souls.']},
+  {name:'service',gem:'lapis',h1:'#1122cc',h2:'#4466ff',dark:'#000512',freqs:[216,288,378],
+   sentences:['Service is the commitment to participate fully in life — to be a player rather than a spectator.','Without it, existence would be like a world without its moon.','The moon stirs the tides, which shape the shorelines, which sustain all creatures — the world in constant purposeful motion.','Service creates the energy that moves us forward.','It allows us not only to give ourselves to others, but to receive the service of others in return. Like the tide — it must both advance and recede.']},
+  {name:'oneness',gem:'tanzanite',h1:'#5522bb',h2:'#aa77ff',dark:'#080012',freqs:[216,324,432],
+   sentences:['Oneness is a spiritual truth — the remembrance that all souls are expressions of a single shared spirit.','We inhabit individual physical forms, yet we will return to that spirit when this earthly journey is complete.','The growth of any one soul is never a selfish act — it is ultimately a gift to the whole.','To love another is to love oneself.','To recognise another is to recognise the self. Oneness is the thread woven through every value.']}
+];
+
+const SYMBOLS={
+  circle:{label:'a circle',draw:(c,x,y,r)=>{c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.stroke()},start:(x,y,r)=>({x:x+r,y}),check(p){const b=bbox(p);if(b.w<50||b.h<50)return false;const radii=p.map(q=>Math.hypot(q.x-b.cx,q.y-b.cy));return Math.min(b.w,b.h)/Math.max(b.w,b.h)>0.45&&sd(radii)/mean(radii)<0.38&&closure(p)/mean(radii)<1.2&&angT(p)>Math.PI*1.2}},
+  heart:{label:'a heart',draw:(c,x,y,r)=>{c.beginPath();c.moveTo(x,y-r*0.25);c.bezierCurveTo(x+r*0.05,y-r*0.85,x+r,y-r*0.85,x+r,y-r*0.3);c.bezierCurveTo(x+r,y+r*0.2,x,y+r*0.65,x,y+r*0.75);c.bezierCurveTo(x,y+r*0.65,x-r,y+r*0.2,x-r,y-r*0.3);c.bezierCurveTo(x-r,y-r*0.85,x-r*0.05,y-r*0.85,x,y-r*0.25);c.stroke()},start:(x,y,r)=>({x,y:y-r*0.25}),check(p){if(p.length<20)return false;const b=bbox(p);if(b.w<50||b.h<40)return false;const tq=p.filter(q=>q.y<b.minY+b.h*0.35);const bq=p.filter(q=>q.y>b.maxY-b.h*0.25);return tq.length>4&&bbox(tq).w>b.w*0.5&&(bq.length<3||bbox(bq).w<b.w*0.6)&&b.h/b.w>0.6&&b.h/b.w<1.6}},
+  star:{label:'a star',draw:(c,x,y,r)=>{c.beginPath();const sp=[];for(let i=0;i<5;i++){const a=-Math.PI/2+(i*4*Math.PI/5);sp.push({x:x+Math.cos(a)*r,y:y+Math.sin(a)*r})}c.moveTo(sp[0].x,sp[0].y);for(let i=1;i<=5;i++)c.lineTo(sp[i%5].x,sp[i%5].y);c.stroke()},start:(x,y,r)=>({x,y:y-r}),check(p){if(p.length<20)return false;const b=bbox(p);if(b.w<50||b.h<50)return false;let corners=0;for(let i=4;i<p.length-4;i++){const dx1=p[i].x-p[i-4].x,dy1=p[i].y-p[i-4].y,dx2=p[i+4].x-p[i].x,dy2=p[i+4].y-p[i].y;const m1=Math.hypot(dx1,dy1),m2=Math.hypot(dx2,dy2);if(m1>2&&m2>2&&(dx1*dx2+dy1*dy2)/(m1*m2)<-0.3)corners++}return Math.min(b.w,b.h)/Math.max(b.w,b.h)>0.5&&corners>=4}},
+  infinity:{label:'an infinity sign',draw:(c,x,y,r)=>{c.beginPath();for(let i=0;i<=120;i++){const t=(i/120)*Math.PI*2;i===0?c.moveTo(x+r*Math.sin(t),y+r*0.5*Math.sin(2*t)):c.lineTo(x+r*Math.sin(t),y+r*0.5*Math.sin(2*t))}c.stroke()},start:(x,y,r)=>({x,y}),check(p){if(p.length<25)return false;const b=bbox(p);if(b.w<60||b.h<25)return false;let cr=0;for(let i=1;i<p.length;i++)if((p[i-1].x-b.cx)*(p[i].x-b.cx)<0)cr++;return b.w/b.h>1.2&&cr>=2&&closure(p)/b.w<0.55}},
+};
+
+function mean(a){return a.reduce((s,v)=>s+v,0)/a.length}
+function sd(a){const m=mean(a);return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/a.length)}
+function bbox(p){const xs=p.map(q=>q.x),ys=p.map(q=>q.y);const mnX=Math.min(...xs),mxX=Math.max(...xs),mnY=Math.min(...ys),mxY=Math.max(...ys);return{minX:mnX,maxX:mxX,minY:mnY,maxY:mxY,cx:(mnX+mxX)/2,cy:(mnY+mxY)/2,w:mxX-mnX,h:mxY-mnY}}
+function closure(p){return Math.hypot(p[0].x-p[p.length-1].x,p[0].y-p[p.length-1].y)}
+function angT(p){let t=0,pr=null;const b=bbox(p);for(const q of p){const a=Math.atan2(q.y-b.cy,q.x-b.cx);if(pr!==null){let d=a-pr;if(d>Math.PI)d-=2*Math.PI;if(d<-Math.PI)d+=2*Math.PI;t+=d}pr=a}return Math.abs(t)}
+function hexArr(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]}
+function hexA(h,a){const[r,g,b]=hexArr(h);return`rgba(${r},${g},${b},${a})`}
+
+// ── AUDIO ENGINE ─────────────────────────────────────────────────────────────
+// Single ambient track plays on all screens. Mute button toggles it.
+let audioMuted=false;
+const audioBtn=document.getElementById('audio-toggle');
+let _bgSrc=null,_bgGain=null,_bgBuf=null,_bgAC=null;
+
+function getAC(){
+  if(!_bgAC)_bgAC=new(window.AudioContext||window.webkitAudioContext)();
+  if(_bgAC.state==='suspended')_bgAC.resume();
+  return _bgAC;
+}
+
+async function // startBgAudio(){
+  if(_bgSrc)return; // already playing
+  const ac=getAC();
+  if(!_bgBuf){
+    const bin=null /*audio removed*/;
+    const buf=new ArrayBuffer(bin.length);
+    const v=new Uint8Array(buf);
+    for(let i=0;i<bin.length;i++)v[i]=bin.charCodeAt(i);
+    try{ _bgBuf=await ac.decodeAudioData(buf); }catch(e){console.warn('audio decode',e);return;}
+  }
+  const src=ac.createBufferSource();
+  const gain=ac.createGain();
+  src.buffer=_bgBuf;src.loop=true;
+  src.connect(gain);gain.connect(ac.destination);
+  gain.gain.setValueAtTime(audioMuted?0:0.5,ac.currentTime);
+  gain.gain.linearRampToValueAtTime(audioMuted?0:0.5,ac.currentTime+0.01);
+  src.start();
+  _bgSrc=src;_bgGain=gain;
+}
+
+function setMuteState(muted){
+  audioMuted=muted;
+  audioBtn.textContent=muted?'♪ off':'♪ on';
+  audioBtn.classList.toggle('muted',muted);
+  if(_bgGain){
+    const ac=getAC();
+    _bgGain.gain.cancelScheduledValues(ac.currentTime);
+    _bgGain.gain.setTargetAtTime(muted?0:0.5,ac.currentTime,0.3);
+  }
+}
+
+audioBtn.addEventListener('click',()=>setMuteState(!audioMuted));
+
+// Stub crossfadeTo so existing calls don't error
+function crossfadeTo(){}
+function stopAllAudio(){}
+
+// SFX tones (short, for interactions)
+// SFX tones (short, for interactions)
+let AC=null;
+function getAC(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}
+function playTone(freq,vol,delay=0,dur=0.7){if(audioMuted)return;try{const a=getAC();const o=a.createOscillator();const g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sine';o.frequency.value=freq;const t=a.currentTime+delay;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.05);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.start(t);o.stop(t+dur+0.05)}catch(e){}}
+
+function haptic(p){if(navigator.vibrate)navigator.vibrate(p)}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+
+// ── REFRESH ──────────────────────────────────────────────────────────────────
+(function(){
+  const c=document.getElementById('refresh-canvas').getContext('2d');
+  let stars=Array.from({length:200},()=>({x:Math.random()*390,y:Math.random()*844,s:Math.random()*1.4+0.2,a:Math.random()*0.5+0.2,t:Math.random()*Math.PI*2,sp:Math.random()*0.008+0.004}));
+  const neb=[[100,280,180,260,0.055],[300,500,150,200,0.04],[200,140,120,230,0.045]];
+  (function draw(){c.fillStyle='#02010e';c.fillRect(0,0,390,844);neb.forEach(([x,y,r,h,a])=>{const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,`hsla(${h},60%,38%,${a})`);g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,390,844)});stars.forEach(s=>{s.t+=s.sp;const tw=0.55+0.45*Math.sin(s.t);c.beginPath();c.arc(s.x,s.y,Math.max(0,s.s*tw),0,Math.PI*2);c.fillStyle=`rgba(255,255,255,${s.a*tw})`;c.fill()});requestAnimationFrame(draw)})();
+  let started=false;
+  document.getElementById('refresh-demo-btn').addEventListener('click',()=>{
+    if(!started){started=true;// startBgAudio();}
+    setTimeout(()=>{crossfadeTo('login',0.5);showScreen('login-screen')},800);
+  });
+})();
+
+// ── LOGIN ────────────────────────────────────────────────────────────────────
+(function(){
+  const canvas=document.getElementById('login-canvas');const ctx=canvas.getContext('2d');
+  const feedEl=document.getElementById('login-feedback');
+  const mysteryEl=document.getElementById('login-mystery');
+  let drawPts=[],isDrawing=false,trailFade=1,bp=0;
+  let sucAnim=0,sucAnimating=false,failAnim=0,failAnimating=false;
+  function setFeed(msg,ok){feedEl.textContent=msg;feedEl.style.color=ok===true?'rgba(140,220,160,0.8)':ok===false?'rgba(255,140,120,0.7)':'rgba(255,255,255,0.35)'}
+  function gp(e){const r=canvas.getBoundingClientRect();if(e.touches)return{x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top};return{x:e.clientX-r.left,y:e.clientY-r.top}}
+  canvas.addEventListener('mousedown',e=>{isDrawing=true;drawPts=[gp(e)];trailFade=1;try{getAC()}catch(e){}});
+  canvas.addEventListener('mousemove',e=>{if(!isDrawing)return;const p=gp(e);const l=drawPts[drawPts.length-1];if(Math.hypot(p.x-l.x,p.y-l.y)>4)drawPts.push(p)});
+  canvas.addEventListener('mouseup',()=>{isDrawing=false;drawPts.length>12?check():(drawPts=[],trailFade=1)});
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();isDrawing=true;drawPts=[gp(e)];trailFade=1;try{getAC()}catch(e){}},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!isDrawing)return;const p=gp(e);const l=drawPts[drawPts.length-1];if(Math.hypot(p.x-l.x,p.y-l.y)>4)drawPts.push(p)},{passive:false});
+  canvas.addEventListener('touchend',()=>{isDrawing=false;drawPts.length>12?check():(drawPts=[],trailFade=1)});
+  function check(){
+    // Try each symbol in order
+    for(const[key,sym] of Object.entries(SYMBOLS)){
+      if(sym.check(drawPts)){
+        const dest=SYMBOL_MAP[key];
+        if(!dest)continue; // symbol not mapped, treat as fail
+        setFeed('',true);sucAnim=0;sucAnimating=true;
+        [288,360,432,540].forEach((f,i)=>playTone(f,0.07,i*0.13,1.2));
+        haptic([15,25,50,25,100]);
+        setTimeout(()=>navigate(dest),1100);
+        return;
+      }
+    }
+    // Nothing matched
+    setFeed('',false);failAnim=0;failAnimating=true;haptic([15,20,15]);
+    setTimeout(()=>{drawPts=[];trailFade=1;setFeed('')},1100);
+  }
+  function navigate(dest){
+    if(dest==='orb')showScreen('orb-screen');
+    else if(dest==='heart')showScreen('heart-screen');
+    else if(dest==='star')showScreen('star-screen');
+    else if(dest==='infinity')showScreen('infinity-screen');
+  }
+  (function loop(){
+    if(!document.getElementById('login-screen').classList.contains('active')){requestAnimationFrame(loop);return}
+    requestAnimationFrame(loop);bp+=0.018;
+    ctx.fillStyle='#02010e';ctx.fillRect(0,0,390,844);
+    [[80,200,160,260,0.04],[310,400,140,200,0.032],[185,100,100,280,0.036]].forEach(([x,y,r,h,a])=>{const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,`hsla(${h},60%,38%,${a})`);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,390,844)});
+    const cx=195,cy=390,R=100,br=0.5+0.5*Math.sin(bp*0.7);
+    // Mystery: no symbol guide shown. Animate the breathing text opacity.
+    const mAlpha=0.2+0.2*Math.sin(bp*0.6);
+    mysteryEl.style.opacity=mAlpha;
+    if(drawPts.length>1){if(!isDrawing)trailFade=Math.max(0,trailFade-0.015);ctx.save();ctx.globalAlpha=trailFade;ctx.beginPath();ctx.moveTo(drawPts[0].x,drawPts[0].y);for(let i=1;i<drawPts.length;i++)ctx.lineTo(drawPts[i].x,drawPts[i].y);ctx.strokeStyle='rgba(215,195,255,0.92)';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();ctx.restore();if(trailFade<=0&&!isDrawing){drawPts=[];trailFade=1}}
+    if(sucAnimating){sucAnim+=0.022;const t=Math.min(sucAnim,1);ctx.beginPath();ctx.arc(cx,cy,Math.max(0,R*(0.7+t*0.9)),0,Math.PI*2);ctx.strokeStyle=`rgba(140,220,160,${(1-t)*0.7})`;ctx.lineWidth=2;ctx.stroke();if(t>=1)sucAnimating=false}
+    if(failAnimating){failAnim+=0.06;if(failAnim>=1)failAnimating=false;const shk=Math.sin(failAnim*Math.PI*6)*(1-failAnim)*8;ctx.save();ctx.translate(shk,0);ctx.beginPath();ctx.arc(cx,cy,Math.max(0,R*0.85),0,Math.PI*2);ctx.strokeStyle=`rgba(255,100,80,${(1-failAnim)*0.4})`;ctx.lineWidth=1.5;ctx.stroke();ctx.restore()}
+  })();
+})();
+
+// ── ORB ──────────────────────────────────────────────────────────────────────
+(function(){
+  const canvas=document.getElementById('orb-canvas');const ctx=canvas.getContext('2d');
+  const W=390,H=844,CX=195,CY=410;
+
+  // Stars: spherically placed for parallax, with colour tints
+  const STAR_COLORS=[
+    [255,255,255],[220,230,255],[255,220,200],[200,220,255],
+    [255,240,180],[200,255,220],[255,200,220]
+  ];
+  let stars=Array.from({length:340},()=>{
+    const col=STAR_COLORS[Math.floor(Math.random()*STAR_COLORS.length)];
+    return{
+      ax:Math.random()*Math.PI*2,
+      ay:(Math.random()-0.5)*Math.PI,
+      s:Math.random()*2.2+0.2,
+      baseA:Math.random()*0.7+0.15,
+      t:Math.random()*Math.PI*2,
+      sp:Math.random()*0.012+0.003,
+      col,
+      // some stars bigger and brighter
+      bright:Math.random()<0.12
+    }
+  });
+  const neb=[[80,250,200,220,0.08],[320,560,170,200,0.07],[200,120,140,260,0.075],[90,620,150,240,0.06],[310,180,120,280,0.065]];
+
+  const GEM_POS=[];const phi=Math.PI*(3-Math.sqrt(5));
+  for(let i=0;i<9;i++){const y=1-(i/8)*2;const r=Math.sqrt(Math.max(0,1-y*y));GEM_POS.push({x:Math.cos(phi*i)*r,y,z:Math.sin(phi*i)*r})}
+
+  // Word positions on sphere (same as before, used for hit detection)
+
+  let rX=0.3,rY=0.5,vX=0,vY=0.004;
+  let isDrag=false,lX=0,lY=0;
+  let bp=0,holdTgt=-1,holdProg=0,holdTmr=null,gemPos=[];
+  let frozen=false;
+
+  function rot3(px,py,pz){let x=px,y=py,z=pz;const cy=Math.cos(rY),sy=Math.sin(rY);let nx=x*cy-z*sy,nz=x*sy+z*cy;x=nx;z=nz;const cx2=Math.cos(rX),sx=Math.sin(rX);let ny=y*cx2-z*sx;nz=y*sx+z*cx2;return{x,y:ny,z:nz}}
+
+  function drawGalaxy(){
+    ctx.fillStyle='#01000c';ctx.fillRect(0,0,W,H);
+    neb.forEach(([x,y,r,h,a])=>{const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,`hsla(${h},65%,32%,${a})`);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)});
+    stars.forEach(s=>{
+      s.t+=s.sp;
+      // Parallax: project star using orb rotation offset
+      const px=Math.cos(s.ax+rY*0.28)*Math.cos(s.ay+rX*0.20);
+      const py=Math.sin(s.ay+rX*0.20);
+      const pz=Math.sin(s.ax+rY*0.28)*Math.cos(s.ay+rX*0.20);
+      const screenX=CX+px*(W*0.58);
+      const screenY=CY-py*(H*0.58);
+      if(screenX<-30||screenX>W+30||screenY<-30||screenY>H+30)return;
+      // Vary brightness with twinkle + depth
+      const depth=pz*0.5+0.5;
+      const twinkle=0.45+0.55*Math.sin(s.t);
+      const alpha=s.baseA*twinkle*(0.4+depth*0.6);
+      const size=s.bright?s.s*1.8:s.s;
+      const[cr,cg,cb]=s.col;
+      // Bright stars get a small glow
+      if(s.bright&&alpha>0.3){
+        const glow=ctx.createRadialGradient(screenX,screenY,0,screenX,screenY,size*3);
+        glow.addColorStop(0,`rgba(${cr},${cg},${cb},${alpha*0.35})`);
+        glow.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.beginPath();ctx.arc(screenX,screenY,Math.max(0,size*3),0,Math.PI*2);ctx.fillStyle=glow;ctx.fill();
+      }
+      ctx.beginPath();ctx.arc(screenX,screenY,Math.max(0,size*twinkle),0,Math.PI*2);
+      ctx.fillStyle=`rgba(${cr},${cg},${cb},${alpha})`;ctx.fill();
+    });
+  }
+
+  function drawShell(br){
+    const R=150;
+    // Multiple outer glow rings — stronger
+    for(let i=5;i>=0;i--){
+      const sc=1+i*0.065;
+      const al=i===0?(0.28+br*0.14):(0.07+br*0.05)/(i+0.4);
+      ctx.beginPath();ctx.arc(CX,CY,R*sc,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(175,200,255,${al})`;ctx.lineWidth=i===0?2.5:0.8;ctx.stroke();
+    }
+    // Glass body
+    const body=ctx.createRadialGradient(CX-R*0.32,CY-R*0.38,R*0.04,CX,CY,R);
+    body.addColorStop(0,`rgba(215,232,255,${0.20+br*0.12})`);
+    body.addColorStop(0.2,`rgba(165,195,255,${0.12+br*0.07})`);
+    body.addColorStop(0.55,`rgba(105,145,245,${0.06+br*0.03})`);
+    body.addColorStop(1,`rgba(70,100,220,${0.03})`);
+    ctx.beginPath();ctx.arc(CX,CY,R,0,Math.PI*2);ctx.fillStyle=body;ctx.fill();
+    // STRONG breathing inner light
+    const pulse=0.5+0.5*Math.sin(bp*0.5);
+    const innerR=R*0.65;
+    const inner=ctx.createRadialGradient(CX,CY,0,CX,CY,innerR);
+    inner.addColorStop(0,`rgba(190,165,255,${0.45+pulse*0.35})`);
+    inner.addColorStop(0.25,`rgba(160,135,245,${0.28+pulse*0.22})`);
+    inner.addColorStop(0.55,`rgba(120,95,215,${0.12+pulse*0.10})`);
+    inner.addColorStop(1,'rgba(80,55,175,0)');
+    ctx.beginPath();ctx.arc(CX,CY,Math.max(0,innerR),0,Math.PI*2);ctx.fillStyle=inner;ctx.fill();
+    // Outer ambient glow from the light inside
+    const outerGlow=ctx.createRadialGradient(CX,CY,R*0.5,CX,CY,R*1.3);
+    outerGlow.addColorStop(0,'rgba(0,0,0,0)');
+    outerGlow.addColorStop(0.7,`rgba(140,110,255,${0.04+pulse*0.04})`);
+    outerGlow.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath();ctx.arc(CX,CY,Math.max(0,R*1.3),0,Math.PI*2);ctx.fillStyle=outerGlow;ctx.fill();
+    // Secondary pulse ring
+    ctx.beginPath();ctx.arc(CX,CY,Math.max(0,R*(0.38+pulse*0.09)),0,Math.PI*2);
+    ctx.strokeStyle=`rgba(210,190,255,${0.15+pulse*0.18})`;ctx.lineWidth=1.2;ctx.stroke();
+    // Specular
+    const spec=ctx.createRadialGradient(CX-R*0.3,CY-R*0.35,0,CX-R*0.3,CY-R*0.35,R*0.44);
+    spec.addColorStop(0,`rgba(255,255,255,${0.22+br*0.12})`);spec.addColorStop(0.35,`rgba(225,238,255,0.06)`);spec.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath();ctx.arc(CX,CY,R,0,Math.PI*2);ctx.fillStyle=spec;ctx.fill();
+    // Rim
+    ctx.beginPath();ctx.arc(CX,CY,R,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(215,228,255,${0.22+br*0.12})`;ctx.lineWidth=1.5;ctx.stroke();
+  }
+
+  function drawWord(sx,sy,r,v,depth,gemIdx){
+    // Floating word — no gem shape, just the value name with colour & glow
+    const alpha=Math.max(0.08,(depth+1)/2);
+    const pulse=1+Math.sin(bp*0.9+gemIdx*0.7)*0.04;
+    const fs=Math.max(11,r*0.38)*pulse;
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    // Soft coloured halo behind text
+    const glow=ctx.createRadialGradient(sx,sy,0,sx,sy,r*1.1);
+    glow.addColorStop(0,hexA(v.h2,0.22*alpha));
+    glow.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath();ctx.arc(sx,sy,Math.max(0,r*1.1),0,Math.PI*2);
+    ctx.fillStyle=glow;ctx.fill();
+    // Text
+    ctx.globalAlpha=Math.min(1,alpha*1.7);
+    ctx.font=`italic ${fs}px 'IM Fell English',Georgia,serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    // Subtle shadow for depth
+    ctx.shadowColor=hexA(v.h1,0.6*alpha);
+    ctx.shadowBlur=8;
+    ctx.fillStyle=`rgba(255,248,220,${Math.min(1,alpha*1.8)})`;
+    ctx.fillText(v.name,sx,sy);
+    ctx.shadowBlur=0;
+    ctx.restore();
+  }
+
+  function drawGems(){
+    const R=152; // slightly larger orbit so words clear the orb shell
+    const proj=VALUES.map((v,i)=>{const p=GEM_POS[i];const r3=rot3(p.x,p.y,p.z);return{sx:CX+r3.x*R,sy:CY-r3.y*R,sz:r3.z,i}}).sort((a,b)=>a.sz-b.sz);
+    gemPos=new Array(9);
+    proj.forEach(({sx,sy,sz,i})=>{
+      const sc=(sz+1.8)/2.8;
+      const r=70*sc; // hit radius for touch
+      gemPos[i]={sx,sy,r,visible:sz>-0.45};
+      if(sz>-0.6)drawWord(sx,sy,r,VALUES[i],sz,i);
+    });
+  }
+
+  function drawArc(){
+    if(holdTgt<0||holdProg<=0)return;
+    const g=gemPos[holdTgt];if(!g||!g.visible)return;
+    const v=VALUES[holdTgt];
+    const gl=ctx.createRadialGradient(g.sx,g.sy,0,g.sx,g.sy,g.r*2.2);
+    gl.addColorStop(0,hexA(v.h2,0.24*holdProg));gl.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath();ctx.arc(g.sx,g.sy,Math.max(0,g.r*2.2),0,Math.PI*2);ctx.fillStyle=gl;ctx.fill();
+    ctx.beginPath();ctx.arc(g.sx,g.sy,g.r*1.5,-Math.PI/2,-Math.PI/2+Math.PI*2*holdProg);
+    ctx.strokeStyle='rgba(255,232,120,0.95)';ctx.lineWidth=3;ctx.lineCap='round';ctx.stroke();
+  }
+
+  function hitGem(x,y){let best=-1,bd=Infinity;gemPos.forEach((g,i)=>{if(!g||!g.visible)return;const d=Math.hypot(x-g.sx,y-g.sy);if(d<g.r*1.8&&d<bd){bd=d;best=i}});return best}
+  function startHold(i){holdTgt=i;holdProg=0;frozen=true;vX=0;vY=0;const t0=performance.now();holdTmr=setInterval(()=>{holdProg=Math.min(1,(performance.now()-t0)/900);if(holdProg>=1){clearInterval(holdTmr);holdTmr=null;openContent(i)}},16)}
+  function cancelHold(){if(holdTmr){clearInterval(holdTmr);holdTmr=null}holdTgt=-1;holdProg=0;frozen=false;vY=0.003}
+  function openContent(i){
+    haptic([20,40,80]);[288,360,432].forEach((f,j)=>playTone(f,0.07,j*0.13,1.4));
+    crossfadeTo('content',0.6);
+    showScreen('content-screen');startContent(i);
+  }
+  function gp(e){const r=canvas.getBoundingClientRect();if(e.touches)return{x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top};return{x:e.clientX-r.left,y:e.clientY-r.top}}
+
+  // Drag vs hold: use a distance threshold before committing
+  let _downX=0,_downY=0,_pointerDown=false,_pendingGem=-1,_dragging=false;
+  const DRAG_THRESH=8; // px movement before we consider it a drag
+
+  function onPointerDown(e){
+    const p=gp(e);
+    _pointerDown=true;_dragging=false;
+    _downX=p.x;_downY=p.y;lX=p.x;lY=p.y;
+    vX=0;vY=0;
+    _pendingGem=hitGem(p.x,p.y); // remember which gem was under finger
+  }
+  function onPointerMove(e){
+    if(!_pointerDown)return;
+    const p=gp(e);
+    const moved=Math.hypot(p.x-_downX,p.y-_downY);
+    if(!_dragging&&moved>DRAG_THRESH){
+      // Committed to drag — cancel any pending hold
+      _dragging=true;_pendingGem=-1;cancelHold();
+    }
+    if(_dragging){
+      isDrag=true;
+      const dx=p.x-lX,dy=p.y-lY;
+      rY+=dx*0.009;rX-=dy*0.009;
+      vY=dx*0.009;vX=-dy*0.009;
+    }
+    lX=p.x;lY=p.y;
+  }
+  function onPointerUp(){
+    if(_pointerDown&&!_dragging&&_pendingGem>=0){
+      // Short tap on a word — start hold timer
+      startHold(_pendingGem);
+      // Hold timer will open content when complete
+      // If user lifts finger again before timer fires, cancel
+      // (hold requires sustained press — for tap-to-open we need a different gesture)
+      // Actually for floating words, single-tap opens directly:
+      cancelHold();
+      openContent(_pendingGem);
+    } else {
+      cancelHold();
+    }
+    _pointerDown=false;_dragging=false;isDrag=false;
+  }
+  function onPointerCancel(){_pointerDown=false;_dragging=false;isDrag=false;cancelHold();}
+
+  canvas.addEventListener('mousedown',e=>{onPointerDown(e)});
+  canvas.addEventListener('mousemove',e=>{onPointerMove(e)});
+  canvas.addEventListener('mouseup',()=>{onPointerUp()});
+  canvas.addEventListener('mouseleave',()=>{onPointerCancel()});
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();onPointerDown(e)},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();onPointerMove(e)},{passive:false});
+  canvas.addEventListener('touchend',e=>{e.preventDefault();onPointerUp()},{passive:false});
+  canvas.addEventListener('touchcancel',()=>{onPointerCancel()});
+  document.getElementById('orb-back').addEventListener('click',()=>{cancelHold();crossfadeTo('login',0.5);showScreen('login-screen')});
+
+  (function loop(){
+    requestAnimationFrame(loop);
+    if(!document.getElementById('orb-screen').classList.contains('active'))return;
+    bp+=0.018;
+    if(!isDrag&&!frozen){rY+=vY;rX+=vX;vX*=0.96;vY*=0.997;if(Math.abs(vY)<0.003)vY=0.003}
+    const br=0.5+0.5*Math.sin(bp*0.7);
+    drawGalaxy();drawShell(br);drawGems();drawArc();
+  })();
+})();
+
+// ── CONTENT ──────────────────────────────────────────────────────────────────
+let _stopContent=null;
+function startContent(idx){
+  if(_stopContent)_stopContent();
+  const v=VALUES[idx];
+  const canvas=document.getElementById('content-canvas');const ctx=canvas.getContext('2d');
+  const gemBtn=document.getElementById('content-gem-btn');
+  const gemInner=document.getElementById('content-gem-inner');
+  const nameEl=document.getElementById('content-value-name');
+  const sentEl=document.getElementById('sentence-text');
+  const restartEl=document.getElementById('restart-text');
+
+  gemInner.style.background=v.h1;
+  gemBtn.style.boxShadow=`0 0 30px ${v.h2}aa`;
+  nameEl.textContent=v.name;
+  restartEl.style.color='rgba(255,255,255,0)';
+  sentEl.style.color='rgba(255,255,255,0)';
+
+  const sentences=v.sentences;
+  const[dr,dg,db]=hexArr(v.dark);
+  const[h1r,h1g,h1b]=hexArr(v.h1);
+  const[h2r,h2g,h2b]=hexArr(v.h2);
+  const cStars=Array.from({length:55},()=>({x:Math.random()*390,y:Math.random()*500,s:Math.random()*1.1+0.2,a:Math.random()*0.4+0.15,t:Math.random()*Math.PI*2,sp:Math.random()*0.01+0.005}));
+  let aPhase=0,running=true,raf=null;
+  let sentIdx=0,sentOpacity=0,restartOpacity=0;
+  let fadePhase='in',fadeProgress=0;
+  const FADE_IN=1.2,HOLD=7.0,FADE_OUT=1.2;
+  let lastTs=null,advancing=false,atEnd=false;
+
+  sentEl.textContent=sentences[0];
+
+  const contentScreen=document.getElementById('content-screen');
+  function onContentClick(e){
+    if(e.target===gemBtn||e.target===gemInner)return;
+    if(atEnd){
+      // Restart from beginning
+      atEnd=false;restartOpacity=0;restartEl.style.color='rgba(255,255,255,0)';
+      sentIdx=0;sentEl.textContent=sentences[0];fadePhase='in';fadeProgress=0;advancing=false;
+    } else {
+      advancing=true;
+    }
+  }
+  contentScreen.addEventListener('click',onContentClick);
+  contentScreen.addEventListener('touchend',e=>{if(!e.defaultPrevented)onContentClick(e)},{passive:true});
+
+  function drawAurora(){
+    aPhase+=0.008;ctx.fillStyle=v.dark;ctx.fillRect(0,0,390,844);
+    for(let band=0;band<5;band++){
+      const yB=844*(0.05+band*0.13);const amp=844*(0.038+band*0.016);
+      ctx.beginPath();for(let px=0;px<=390;px+=3){const w=Math.sin(px/390*Math.PI*3+aPhase+band*1.2)*amp+Math.sin(px/390*Math.PI*5+aPhase*0.6+band)*amp*0.32;px===0?ctx.moveTo(px,yB+w):ctx.lineTo(px,yB+w)}
+      for(let px=390;px>=0;px-=3){const w=Math.sin(px/390*Math.PI*3+aPhase+band*1.2)*amp+Math.sin(px/390*Math.PI*5+aPhase*0.6+band)*amp*0.32;ctx.lineTo(px,yB+w+844*0.085)}
+      ctx.closePath();const al=(0.085-band*0.01)*(0.7+0.3*Math.sin(aPhase+band));
+      ctx.fillStyle=`rgba(${h1r},${h1g},${h1b},${al})`;ctx.fill();
+      ctx.strokeStyle=`rgba(${h2r},${h2g},${h2b},${al*0.3})`;ctx.lineWidth=0.5;ctx.stroke();
+    }
+    const gh=844*0.28;const ground=ctx.createLinearGradient(0,844-gh,0,844);
+    ground.addColorStop(0,'rgba(0,0,0,0)');
+    ground.addColorStop(0.3,`rgba(${Math.max(0,dr+5)},${Math.max(0,dg+8)},${Math.max(0,db+4)},0.65)`);
+    ground.addColorStop(1,`rgba(${dr},${dg},${db},0.98)`);
+    ctx.fillStyle=ground;ctx.fillRect(0,844-gh,390,gh);
+    cStars.forEach(s=>{s.t+=s.sp;const tw=0.55+0.45*Math.sin(s.t);ctx.beginPath();ctx.arc(s.x,s.y,Math.max(0,s.s*tw),0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${s.a*tw})`;ctx.fill()});
+  }
+
+  function step(ts){
+    if(!running)return;
+    drawAurora();
+    const dt=lastTs?Math.min((ts-lastTs)/1000,0.1):0;lastTs=ts;
+
+    if(atEnd){
+      // Show "begin again" fading in
+      restartOpacity=Math.min(1,restartOpacity+dt/1.5);
+      restartEl.style.color=`rgba(255,255,255,${restartOpacity*0.55})`;
+      sentEl.style.color='rgba(255,255,255,0)';
+      raf=requestAnimationFrame(step);return;
+    }
+
+    if(advancing&&fadePhase!=='out'){fadePhase='out';fadeProgress=0;}
+
+    if(fadePhase==='in'){
+      fadeProgress+=dt/FADE_IN;if(fadeProgress>=1){fadeProgress=1;fadePhase='hold'}
+      sentOpacity=fadeProgress;
+    } else if(fadePhase==='hold'){
+      sentOpacity=1;
+    } else {
+      fadeProgress+=dt/FADE_OUT;sentOpacity=Math.max(0,1-fadeProgress);
+      if(fadeProgress>=1){
+        advancing=false;
+        if(sentIdx===sentences.length-1){
+          // End reached — show restart prompt
+          atEnd=true;sentEl.style.color='rgba(255,255,255,0)';
+          raf=requestAnimationFrame(step);return;
+        }
+        sentIdx++;sentEl.textContent=sentences[sentIdx];
+        fadePhase='in';fadeProgress=0;
+      }
+    }
+    sentEl.style.color=`rgba(255,255,255,${sentOpacity*0.88})`;
+    sentEl.style.textShadow=`0 0 ${50*sentOpacity}px rgba(${h2r},${h2g},${h2b},${sentOpacity*0.4})`;
+    raf=requestAnimationFrame(step);
+  }
+  raf=requestAnimationFrame(step);
+
+  function onGemClick(e){e.stopPropagation();if(_stopContent)_stopContent();crossfadeTo('ambient',0.55);showScreen('orb-screen')}
+  gemBtn.addEventListener('click',onGemClick);
+  gemBtn.addEventListener('touchend',e=>{e.stopPropagation();e.preventDefault();onGemClick(e)},{passive:false});
+
+  _stopContent=function(){
+    running=false;if(raf)cancelAnimationFrame(raf);
+    sentEl.textContent='';sentEl.style.color='rgba(255,255,255,0)';
+    restartEl.style.color='rgba(255,255,255,0)';
+    lastTs=null;atEnd=false;
+    contentScreen.removeEventListener('click',onContentClick);
+    contentScreen.removeEventListener('touchend',onContentClick);
+    gemBtn.removeEventListener('click',onGemClick);
+    gemBtn.removeEventListener('touchend',onGemClick);
+    _stopContent=null;
+  };
+}
+
+
+// ── HEART ─────────────────────────────────────────────────────────────────────
+(function(){
+  const IMAGES=[
+    'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iODAwIiB2aWV3Qm94PSIwIDAgNjAwIDgwMCI+CiAgPGRlZnM+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImciIGN4PSI0MCUiIGN5PSIzNSUiIHI9IjcwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM4YjRhNmUiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMWEwNTIwIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjgwMCIgZmlsbD0idXJsKCNnKSIvPgogIDx0ZXh0IHg9IjMwMCIgeT0iNDIwIiBmb250LWZhbWlseT0iR2VvcmdpYSxzZXJpZiIgZm9udC1zaXplPSIyOCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjI1KSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zdHlsZT0iaXRhbGljIj55b3VyIGZpcnN0IG1lbW9yeTwvdGV4dD4KPC9zdmc+',
+    'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iODAwIiB2aWV3Qm94PSIwIDAgNjAwIDgwMCI+CiAgPGRlZnM+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImciIGN4PSI0MCUiIGN5PSIzNSUiIHI9IjcwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxYTRhN2EiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMDUwYTIwIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjgwMCIgZmlsbD0idXJsKCNnKSIvPgogIDx0ZXh0IHg9IjMwMCIgeT0iNDIwIiBmb250LWZhbWlseT0iR2VvcmdpYSxzZXJpZiIgZm9udC1zaXplPSIyOCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjI1KSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zdHlsZT0iaXRhbGljIj5hIG1vbWVudCBpbiB0aW1lPC90ZXh0Pgo8L3N2Zz4=',
+    'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iODAwIiB2aWV3Qm94PSIwIDAgNjAwIDgwMCI+CiAgPGRlZnM+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImciIGN4PSI0MCUiIGN5PSIzNSUiIHI9IjcwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM0YTZhMmEiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMDUwZjAzIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjgwMCIgZmlsbD0idXJsKCNnKSIvPgogIDx0ZXh0IHg9IjMwMCIgeT0iNDIwIiBmb250LWZhbWlseT0iR2VvcmdpYSxzZXJpZiIgZm9udC1zaXplPSIyOCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjI1KSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zdHlsZT0iaXRhbGljIj5zb21ldGhpbmcgcHJlY2lvdXM8L3RleHQ+Cjwvc3ZnPg==',
+  ];
+  let idx=0;
+  const imgEl=document.getElementById('heart-img');
+  const screen=document.getElementById('heart-screen');
+  const backBtn=document.getElementById('heart-back');
+
+  function showImage(i,instant){
+    idx=((i%IMAGES.length)+IMAGES.length)%IMAGES.length;
+    if(instant){imgEl.src=IMAGES[idx];imgEl.style.opacity=1;return;}
+    imgEl.classList.add('fading');
+    setTimeout(()=>{imgEl.src=IMAGES[idx];imgEl.classList.remove('fading');},700);
+  }
+
+  screen.addEventListener('click',e=>{
+    if(e.target===backBtn)return;
+    showImage(idx+1,false);
+  });
+  screen.addEventListener('touchend',e=>{
+    if(e.target===backBtn)return;
+    e.preventDefault();showImage(idx+1,false);
+  },{passive:false});
+
+  backBtn.addEventListener('click',()=>{showScreen('login-screen');});
+
+  // Reset when screen becomes active
+  const obs=new MutationObserver(()=>{
+    if(screen.classList.contains('active'))showImage(0,true);
+  });
+  obs.observe(screen,{attributes:true,attributeFilter:['class']});
+})();
+
+// ── STAR ──────────────────────────────────────────────────────────────────────
+(function(){
+  const LETTER=`Dear friend,
+
+There are moments in life that arrive quietly, without announcement — a glance across a room, a hand held at the right time, a word spoken just when it was needed most. This is one of those moments.
+
+I have been thinking about what I wanted to say to you for longer than you know. Not because the words were hard to find, but because they felt too large for any ordinary occasion. So I made this one.
+
+You have shaped the way I see things. Not through grand gestures or dramatic declarations, but through the accumulation of small, consistent kindnesses — the kind that most people never notice, and yet are, I believe, the true architecture of a life well lived.
+
+I want you to know that I notice. I always have.
+
+Whatever comes next — whatever distances grow between us, whatever years pass, whatever the world arranges in its indifferent way — know that there is a version of you living permanently in my memory at your very best. Laughing. Present. Whole.
+
+That is the gift I wanted to give you. The image of yourself as I see you.
+
+With love,
+always.`;
+
+  const letterEl=document.getElementById('star-letter');
+  const screen=document.getElementById('star-screen');
+  const backBtn=document.getElementById('star-back');
+
+  letterEl.textContent=LETTER;
+  backBtn.addEventListener('click',()=>showScreen('login-screen'));
+})();
+
+// ── INFINITY ──────────────────────────────────────────────────────────────────
+(function(){
+  const MSG=`Add your favourite image\nor personal message here.\n\nThis space is yours.`;
+  const msgEl=document.getElementById('infinity-msg');
+  const screen=document.getElementById('infinity-screen');
+  const backBtn=document.getElementById('infinity-back');
+
+  // Add subtle star field to infinity screen
+  const canvas=document.createElement('canvas');
+  canvas.width=390;canvas.height=844;
+  canvas.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;z-index:0';
+  screen.insertBefore(canvas,screen.firstChild);
+  const ctx=canvas.getContext('2d');
+  const stars=Array.from({length:200},()=>({x:Math.random()*390,y:Math.random()*844,s:Math.random()*1.4+0.2,a:Math.random()*0.35+0.05,t:Math.random()*Math.PI*2,sp:Math.random()*0.008+0.002}));
+  let running=false;
+  function drawInfinity(){
+    if(!running)return;
+    ctx.fillStyle='#00010a';ctx.fillRect(0,0,390,844);
+    stars.forEach(s=>{s.t+=s.sp;const tw=0.5+0.5*Math.sin(s.t);ctx.beginPath();ctx.arc(s.x,s.y,Math.max(0,s.s*tw),0,Math.PI*2);ctx.fillStyle=`rgba(200,195,255,${s.a*tw})`;ctx.fill()});
+    requestAnimationFrame(drawInfinity);
+  }
+
+  msgEl.textContent=MSG;
+  backBtn.addEventListener('click',()=>showScreen('login-screen'));
+
+  const obs=new MutationObserver(()=>{
+    if(screen.classList.contains('active')){running=true;drawInfinity();}
+    else running=false;
+  });
+  obs.observe(screen,{attributes:true,attributeFilter:['class']});
+})();
+
+</script>
+</body>
+</html>
